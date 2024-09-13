@@ -1,0 +1,12 @@
+[package]
+name = "webapp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = "0.1.82"
+custom_error = "1.9.2"
+serde = { version = "1.0.210", features = ["derive"] }
+tokio = { version = "1.40.0", features = ["full"] }
+tokio-postgres = "0.7.11"
+warp = "0.3.7"
