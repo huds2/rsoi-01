@@ -25,10 +25,10 @@ jobs:
         run: |
             docker build . -t huds/rsoi-webapp
             docker save -o rsoi-webapp.tar huds/rsoi-webapp
-            scp rsoi-webapp.tar docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~
+            scp -r postgres rsoi-webapp.tar docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~
       - name: Start application
         run: |
-            ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker load -i rsoi-webapp.tar; docker compose up -d"
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker compose down; docker load -i rsoi-webapp.tar; docker compose up -d"
       - name: Cleanup
         run: rm -rf ~/.ssh
 
