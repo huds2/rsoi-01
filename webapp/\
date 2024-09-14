@@ -1,0 +1,20 @@
+pub mod person;
+pub mod repository;
+pub mod server;
+pub use person::*;
+pub use repository::*;
+pub use server::*;
+use custom_error::custom_error;
+
+custom_error!{pub WebappError
+    NotFoundError                            = "Person was not found",
+    AlreadyExistsError                       = "Person already exists",
+}
+
+macro_rules! arc{
+    ($a:expr)=>{
+        {
+            Arc::new(Mutex::new($a))
+        }
+    }
+}

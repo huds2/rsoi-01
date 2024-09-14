@@ -13,6 +13,14 @@ services:
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
+  webapp:
+    image: huds/rsoi-webapp
+    container_name: webapp
+    restart: on-failure
+    environment:
+      PSQL_CONNECTION: postgresql://program:test@postgres/persons
+    ports:
+      - "8080:8080"
 
 volumes:
   db-data:

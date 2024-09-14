@@ -1,5 +1,6 @@
 name: GitHub Classroom Workflow
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -8,15 +9,51 @@ on:
       - master
 jobs:
   build:
-    name: Autograding
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build project
+        run: cd webapp; cargo build
+      - name: Run tests
+        run: cd webapp; cargo test
 
-      # TODO build, test and deploy project
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install ssh keys
+        run: |
+            install -m 600 -D /dev/null ~/.ssh/id_rsa
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+      - name: Build and copy files
+        run: |
+            docker build . -t huds/rsoi-webapp
+            docker save -o rsoi-webapp.tar huds/rsoi-webapp
+            scp -r postgres rsoi-webapp.tar docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~
+      - name: Start application
+        run: |
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker compose down; docker load -i rsoi-webapp.tar; docker compose up -d"
+      - name: Cleanup
+        run: rm -rf ~/.ssh
 
+  autograding:
+    name: Autograding
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Run API Tests
         uses: matt-ball/newman-action@master
         with:
@@ -29,12 +66,12 @@ jobs:
         uses: education/autograding@v1
         continue-on-error: true
 
-      - name: Github auto grader mark
-        uses: Romanow/google-sheet-autograder-marker@v1.0
-        with:
-          google_token: ${{secrets.GOOGLE_API_KEY}}
-          sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
-          homework_number: 1
-          user_column: 'D'
-          column_offset: 'F'
-          mark: "'+"
+      # - name: Github auto grader mark
+      #   uses: Romanow/google-sheet-autograder-marker@v1.0
+      #   with:
+      #     google_token: ${{secrets.GOOGLE_API_KEY}}
+      #     sheet_id: "1xkgjUX6Qmk7rdJG-QPOToav-HWWtthJjnShIKnw3oIY"
+      #     homework_number: 1
+      #     user_column: 'D'
+      #     column_offset: 'F'
+      #     mark: "'+"
