@@ -91,7 +91,7 @@ fn with_arc<T: Send + ?Sized>(arc: Arc<Mutex<T>>) -> impl Filter<Extract = (Arc<
     warp::any().map(move || arc.clone())
 }
 
-pub async fn run_server(repository: Arc<Mutex<dyn PersonRepository>>) {
+pub fn router(repository: Arc<Mutex<dyn PersonRepository>>) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     let list_route = warp::path("api")
         .and(warp::path("v1"))
         .and(warp::path!("persons"))
@@ -129,7 +129,12 @@ pub async fn run_server(repository: Arc<Mutex<dyn PersonRepository>>) {
         .or(get_route)
         .or(delete_route)
         .or(patch_route);
-    warp::serve(routes)
+    routes
+}
+
+pub async fn run_server(repository: Arc<Mutex<dyn PersonRepository>>) {
+    let router = router(repository);
+    warp::serve(router)
         .run(([0, 0, 0, 0], 8080))
         .await
 }

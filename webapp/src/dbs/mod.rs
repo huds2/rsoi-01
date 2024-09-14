@@ -1,6 +1,8 @@
 pub mod person;
 pub mod repository;
 pub mod server;
+#[cfg(test)]
+mod unit_test;
 pub use person::*;
 pub use repository::*;
 pub use server::*;
