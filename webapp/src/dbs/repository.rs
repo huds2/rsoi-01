@@ -7,7 +7,7 @@ use tokio_postgres::{Client, NoTls};
 #[async_trait]
 pub trait PersonRepository: Sync + Send {
     async fn init(&mut self) ->  Result<(), Box<dyn Error>>;
-    async fn create(&mut self, person: PersonNoId) ->  Result<(), Box<dyn Error>>;
+    async fn create(&mut self, person: PersonNoId) ->  Result<i32, Box<dyn Error>>;
     async fn list(&mut self) -> Result<Vec<Person>, Box<dyn Error>>;
     async fn get(&mut self, id: i32) ->  Result<Person, Box<dyn Error>>;
     async fn update(&mut self, person: Person) ->  Result<Person, Box<dyn Error>>;
@@ -82,13 +82,13 @@ impl PersonRepository for Repository {
         }
         Ok(list)
     }
-    async fn create(&mut self, person: PersonNoId) ->  Result<(), Box<dyn Error>> {
+    async fn create(&mut self, person: PersonNoId) ->  Result<i32, Box<dyn Error>> {
         let id = self.get_min_id().await?;
         self.client.batch_execute(&format!("
             INSERT INTO person VALUES
                 ({}, '{}', {}, '{}', '{}')
-        ", id, person.name, person.age, person.address, person.work)).await?;
-        Ok(())
+        ", id.clone(), person.name, person.age, person.address, person.work)).await?;
+        Ok(id)
     }
     async fn update(&mut self, person: Person) ->  Result<Person, Box<dyn Error>> {
         self.client.batch_execute(&format!("

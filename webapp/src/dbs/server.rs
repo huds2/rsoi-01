@@ -31,8 +31,10 @@ async fn get_handler(id: i32,
 async fn post_handler(body: PersonNoId,
                       person_repository: Arc<Mutex<dyn PersonRepository>>) -> WebResult<impl Reply> {
     match person_repository.lock().await.create(body).await {
-        Ok(_) => {
-            return Ok(warp::reply::with_status("Created person", warp::http::StatusCode::CREATED))
+        Ok(id) => {
+            let reply = warp::reply::with_status("Created person", warp::http::StatusCode::CREATED);
+            let reply = warp::reply::with_header(reply, "Location", &format!("/api/v1/persons/{}", id));
+            return Ok(reply)
         },
         Err(_) => {
             return Err(reject::reject());
