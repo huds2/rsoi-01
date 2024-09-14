@@ -1,7 +1,7 @@
 use std::{convert::Infallible, sync::Arc};
 use tokio::sync::Mutex;
 use warp::{reject, reply::{self, Reply}, Filter, Rejection};
-use super::{add_id, Person, PersonNoId, PersonRepository};
+use super::{add_id, PersonNoId, PersonRepository};
 
 pub type WebResult<T> = std::result::Result<T, Rejection>;
 
@@ -28,7 +28,7 @@ async fn get_handler(id: i32,
     }
 }
 
-async fn post_handler(body: Person,
+async fn post_handler(body: PersonNoId,
                       person_repository: Arc<Mutex<dyn PersonRepository>>) -> WebResult<impl Reply> {
     match person_repository.lock().await.create(body).await {
         Ok(_) => {

@@ -5,7 +5,7 @@ COPY ./webapp ./
 
 RUN cargo build --release
 
-FROM rust:1.81.0
+FROM debian:buster-slim
 COPY --from=build /webapp/target/release/webapp .
 CMD ["./webapp"]
 
