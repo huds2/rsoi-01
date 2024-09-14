@@ -30,7 +30,7 @@ impl Repository {
     }
     async fn get_min_id(&mut self) -> Result<i32, Box<dyn Error>> {
         if let Ok(rows) = self.client.query("
-            SELECT case when min(id) = 0 then 0 else max(id) end FROM person;
+            SELECT id FROM person ORDER BY id DESC LIMIT 1
         ", &[]).await {
             for row in rows {
                 let min_id: i32 = row.get(0);
