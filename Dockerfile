@@ -1,4 +1,4 @@
-FROM rust:1.81.0 as build
+FROM rust:slim-buster as build
 
 WORKDIR /webapp
 COPY ./webapp ./
