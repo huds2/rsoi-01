@@ -1,7 +1,7 @@
 use std::{convert::Infallible, sync::Arc};
 use tokio::sync::Mutex;
 use warp::{reject, reply::{self, Reply}, Filter, Rejection};
-use super::{add_id, PersonNoId, PersonRepository};
+use super::{PersonNoId, PersonRepository, PersonPatch};
 
 pub type WebResult<T> = std::result::Result<T, Rejection>;
 
@@ -55,10 +55,29 @@ async fn delete_handler(id: i32,
 }
 
 async fn patch_handler(id: i32,
-                       body: PersonNoId,
+                       body: PersonPatch,
                        person_repository: Arc<Mutex<dyn PersonRepository>>) -> WebResult<impl Reply> {
-    let person = add_id(body, id);
-    match person_repository.lock().await.update(person).await {
+    let mut current_person = match person_repository.lock().await.get(id).await {
+        Ok(person) => {
+            person
+        },
+        Err(_) => {
+            return Err(reject::not_found());
+        }
+    };
+    if let Some(name) = body.name {
+        current_person.name = name;
+    }
+    if let Some(age) = body.age {
+        current_person.age = age;
+    }
+    if let Some(work) = body.work {
+        current_person.work = work;
+    }
+    if let Some(address) = body.address {
+        current_person.address = address;
+    }
+    match person_repository.lock().await.update(current_person).await {
         Ok(person) => {
             return Ok(reply::json(&person));
         },

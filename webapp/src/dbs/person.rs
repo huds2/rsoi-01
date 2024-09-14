@@ -17,6 +17,10 @@ pub struct PersonNoId {
     pub work: String
 }
 
-pub fn add_id(person: PersonNoId, id: i32) -> Person {
-    Person { id, name: person.name, age: person.age, address: person.address, work: person.work }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonPatch {
+    pub name: Option<String>,
+    pub age: Option<i32>,
+    pub address: Option<String>,
+    pub work: Option<String>
 }
